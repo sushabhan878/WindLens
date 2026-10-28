@@ -15,9 +15,10 @@ load_dotenv()
 
 from .analytics import SCOPE_START, SCOPE_END, build_pairs, iso, metrics, policy_info, timestamp
 from .source import SourceError, fetch_snapshot, read_snapshot, write_snapshot
+from .config import cors_origins
 
 app = FastAPI(title="WindLens API", version="1.0.0", description="January 2026 national wind generation intelligence. All timestamps UTC; policy timezone Europe/London. End dates are exclusive.")
-app.add_middleware(CORSMiddleware, allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(","), allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
+app.add_middleware(CORSMiddleware, allow_origins=cors_origins(os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")), allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
 snapshot_cache = None
 refresh_lock = asyncio.Lock()
 last_refresh_attempt = None
