@@ -1,0 +1,14 @@
+node_modules/
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.tsbuildinfo
+frontend/dist/
+.env
+.env.*
+!.env.example
+.vercel/
+*.log
+test-results/
+.DS_Store
