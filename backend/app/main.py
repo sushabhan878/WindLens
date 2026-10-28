@@ -187,5 +187,7 @@ async def refresh():
 
 
 frontend_dist = Path(__file__).resolve().parents[2] / "frontend" / "dist"
-if frontend_dist.exists():
+# Docker/local production serves a combined app. Vercel Services serves React
+# independently, so only the frontend service should own its static assets.
+if not os.getenv("VERCEL") and frontend_dist.exists():
     app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")

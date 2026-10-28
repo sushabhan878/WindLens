@@ -4,7 +4,7 @@ UK national wind forecast intelligence for January 2026. React + TypeScript, Pyt
 
 ## Delivery status
 
-The application, real Elexon snapshot, backend tests, production frontend, Docker setup, Vercel configuration, CI, and demo/submission guides are included. **Local delivery was requested; cloud deployment and public repository publication are deferred.** No external submission or YouTube upload has been made. Public deployment/repository URLs are not applicable to this local delivery; add verified URLs if you publish later.
+The application, real Elexon snapshot, backend tests, production frontend, Docker setup, CI, and demo/submission guides are included. **The two-service Vercel configuration is prepared locally; production deployment is pending confirmation and verification.** No external submission or YouTube upload has been made. Add the verified production URL after deployment.
 
 ## Run with Docker
 
@@ -130,13 +130,17 @@ Tests cover metrics and bias signs, cutoff inclusivity and subsecond ordering, L
 
 ## Deploy to Vercel
 
-The repository root contains `vercel.json`, a Python ASGI entry point in `api/index.py`, and `requirements.txt`. Vercel builds `frontend/dist`, bundles the Python backend and snapshot, and routes `/api/*` to FastAPI. The frontend uses relative API URLs. The snapshot is shipped with the function, so startup needs no upstream request. Vercel refreshes use instance memory because deployed files are read-only; a cold instance starts from the bundled snapshot. Refresh/rate limits are per instance. This small historical prototype does not require a shared database.
+The repository root contains a Vercel Services configuration in `vercel.json`. It declares two independently built services: `frontend` (Vite, rooted at `frontend/`) and `backend` (FastAPI, rooted at `backend/`, entrypoint `app.main:app`). Each service owns its build/runtime settings. `/api/*`, `/docs`, `/docs/*`, and `/openapi.json` route to the backend; remaining paths route to the frontend. Vercel preserves the original request path, matching FastAPI's existing `/api/...` routes.
+
+React runs in the browser and calls relative public `/api/...` URLs, including CSV export. There are no server-to-server calls between the two services, so **no service bindings are required or declared**. Runtime-only binding URLs must not be supplied as `VITE_API_BASE_URL` or embedded in the browser build. The Python backend calls Elexon's external API, which is not a Vercel service. The localhost proxy in `frontend/vite.config.ts` is only for standalone Vite development; Vercel owns public routing in services mode. Docker remains a combined same-origin application for local use.
+
+The snapshot is included with the backend function (`data/**` relative to its service root), so startup needs no upstream request. Vercel refreshes use instance memory because deployed files are read-only; a cold instance starts from the bundled snapshot. Refresh/rate limits are per instance. Python 3.12 is selected by `backend/.python-version`. This small historical prototype does not require a shared database.
 
 1. Create a public GitHub repository with an anonymous name, e.g. `national-generation-study`, and push the project. Do not push `.env`, `.venv`, or `node_modules`.
-2. Import that repository in Vercel. Set root directory to this repository root, framework preset to **Other**, and use the included build/output settings. Python 3.12 is selected by `.python-version`.
-3. Deploy. If using the CLI instead, run `npx vercel login`, then `npx vercel --prod` from the root. No secret Elexon API key is needed.
+2. Import that repository in Vercel with this repository as the project root. Use the Services configuration in `vercel.json`: frontend framework `vite`, install `npm ci`, build `npm run build`, output `dist`; backend framework `fastapi`, entrypoint `app.main:app`. Clear any previous single-app build/output overrides in the project settings. Keep the two service roots at `frontend` and `backend`; no third root `app` service is needed.
+3. Test the service router locally with `npx vercel dev --local` (or `npx vercel dev` for a linked project). Vercel CLI 65.5.0 also accepts `-L` but marks that shorthand deprecated. Then deploy from Vercel, or use `npx vercel login` followed by `npx vercel --prod` from the root. Leave `VITE_API_BASE_URL` unset; no Elexon API key or manually configured binding URL is needed.
 4. Check `/`, `/api/health`, `/api/summary`, and `/docs`; change a date/cutoff and inspect a forecast history. Verify in a signed-out/incognito window and configure public access for the submission if Vercel Deployment Protection prevents it.
-5. Replace the pending URL entries at the top of this README with verified live URLs.
+5. Add your verified production and repository URLs to the delivery status at the top of this README.
 
 Vercel settings are prepared but a production cloud deployment has not been claimed without account access. This repository also includes a production Docker image that can run on a container host using `PORT`.
 
@@ -154,7 +158,8 @@ backend/app/source.py     Elexon retrieval, retries and atomic snapshot storage
 backend/app/refresh.py    Reproducible real-data snapshot command
 backend/data/             Compressed real Elexon snapshot and provenance
 backend/tests/            Unit, API, and source integration tests
-api/index.py              Vercel ASGI entry point
+vercel.json               Two Vercel services, public routing, backend snapshot bundle
+backend/.python-version   Python runtime selection for the backend service
 Dockerfile                Multi-stage React build + unprivileged Python server
 docker-compose.yml        One-command local production startup
 scripts/start.ps1         Windows setup/build/start helper

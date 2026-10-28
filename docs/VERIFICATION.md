@@ -1,6 +1,6 @@
 # Local verification — 28 October 2026
 
-Local delivery requested by the user. Cloud deployment, public repository publication, YouTube upload, and application-form submission are deferred.
+The application was initially delivered locally. A two-service Vercel deployment is now being prepared; service names and public routing await the user's requested confirmation. Cloud deployment, YouTube upload, and application-form submission have not been performed by the agent.
 
 ## Automated and runtime checks
 
@@ -52,3 +52,16 @@ No data has been fabricated to fill unmatched starts. The documented cutoff rema
 ## External verification limits
 
 Vercel configuration is prepared but has not been executed against a cloud account, so cloud routing/runtime is not claimed as tested. GitHub Actions configuration is included but has not run on GitHub. Public/incognito URL checks and video/submission tasks apply only if publication is requested later.
+
+## Vercel Services migration verification
+
+- Replaced the single-app deployment configuration with two explicit services, `backend` and `frontend`; removed the obsolete root `api/index.py` function shim.
+- Backend root `backend`, FastAPI entrypoint `app.main:app`, Python 3.12 pinned inside the service, and `data/**` included relative to its root. Function limits and file settings are scoped to the backend service.
+- Frontend root `frontend`, Vite framework, `npm ci`, `npm run build`, output `dist`. Runtime/build fields are absent from the root configuration.
+- Public routes `/api/*`, `/docs`, `/docs/*`, and `/openapi.json` enter the backend; the final catch-all enters the frontend. API paths retain the `/api` prefix and existing browser fetch/export URLs are same-origin.
+- No internal bindings: the frontend is a static browser application and makes no function-to-function calls. External Elexon requests remain configured by `ELEXON_API_BASE`; standalone localhost development URLs are not used as deployed service discovery.
+- Configuration passes validation against the current official `https://openapi.vercel.sh/vercel.json` schema.
+- Vercel CLI **65.5.0** with `dev -L` detected exactly the two services and started the local router successfully. This CLI deprecates `-L` in favor of `--local`.
+- Through the Vercel local router, `/`, `/api/health`, `/api/summary`, `/docs`, `/docs/oauth2-redirect`, and `/openapi.json` returned HTTP 200. Summary reported 744 matched pairs and MAE 2,107.1761 MW from the bundled snapshot.
+- Backend tests: 38 passed after migration. Production frontend build passes.
+- These are local services checks, not a claim that a Vercel cloud deployment has succeeded. Changes have not been pushed or deployed pending the requested service-layout confirmation.

@@ -1,3 +1,5 @@
+// Browser calls stay on the public origin. Vercel routes /api/* to FastAPI;
+// runtime-only service binding URLs must never be embedded in this static app.
 export const apiBase =
   (import.meta as unknown as { env: Record<string, string> }).env
     .VITE_API_BASE_URL || "";

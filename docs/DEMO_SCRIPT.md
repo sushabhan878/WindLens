@@ -26,6 +26,6 @@ This is a recording guide, not a claim that a video has been recorded or uploade
 
 **6:50–7:35 — Verification.** Run `cd backend; python -m pytest -q`. Explain known-pair metric tests, cutoff/subsecond boundary tests, missing values, API contracts, upstream failures, CSV, and persistence. Show `npm --prefix frontend run build` and Docker health.
 
-**7:35–8:20 — Reproducibility and deployment.** Show `docker compose up --build -d`, README directory guide, Vercel Python entry point/configuration and the verified public application URL once deployed. Explain that Vercel refreshes cache in instance memory while the bundled snapshot provides cold-start reliability.
+**7:35–8:20 — Reproducibility and deployment.** Show `docker compose up --build -d`, README directory guide, and the two-service Vercel configuration: Vite frontend, FastAPI backend at `app.main:app`, public `/api/*` routing, and same-origin browser requests. Show the verified public application URL once deployed. Explain that Vercel refreshes cache in instance memory while the bundled snapshot provides cold-start reliability.
 
 **8:20–8:45 — Close.** Show methodology and export. Confirm the repository and application links are accessible signed out. Keep each section below 5 minutes and the total video below 10 minutes.
