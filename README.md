@@ -4,7 +4,15 @@ UK national wind forecast intelligence for January 2026. React + TypeScript, Pyt
 
 ## Delivery status
 
-The application, real Elexon snapshot, backend tests, production frontend, Docker setup, CI, and demo/submission guides are included. **The two-service Vercel configuration is prepared locally; production deployment is pending confirmation and verification.** No external submission or YouTube upload has been made. Add the verified production URL after deployment.
+The application is deployed as two Vercel projects from this repository:
+
+- **Application:** https://windlens-web.vercel.app
+- **API:** https://windlens-api-beryl.vercel.app/api/health
+- **API documentation:** https://windlens-api-beryl.vercel.app/docs
+
+The application, real Elexon snapshot, backend tests, production frontend, Docker setup, CI, and demo/submission guides are included. Production data loading was verified on 28 October 2026. No external submission or YouTube upload has been made.
+
+The deployed frontend project uses root `frontend` and `VITE_API_BASE_URL=https://windlens-api-beryl.vercel.app`. The backend project uses root `backend` and `CORS_ORIGINS=https://windlens-web.vercel.app`. Configure these for Production in the respective Vercel project and redeploy after environment changes. The root Services configuration below is an alternative single-project deployment; the current production URLs use separate projects.
 
 ## Run with Docker
 
@@ -129,6 +137,10 @@ docker compose build
 Tests cover metrics and bias signs, cutoff inclusivity and subsecond ordering, London timezone handling, December publications, missing/zero values, actual revisions, exact joins, duplicate forecast conflicts, API contracts and parameter validation, CSV output, CORS, snapshot persistence, malformed upstream streams, and failed/successful refresh behavior. GitHub Actions runs backend tests, the frontend build, and a container smoke test. See [verification notes](docs/VERIFICATION.md) for recorded local checks and remaining external checks.
 
 ## Deploy to Vercel
+
+For the current two-project deployment, import `backend` as a standalone FastAPI project first, then `frontend` as a standalone Vite project. Use the production API origin in frontend `VITE_API_BASE_URL`, and the production frontend origin in backend `CORS_ORIGINS`. Frontend build settings are install `npm ci`, build `npm run build`, output `dist`. FastAPI uses its framework defaults and the existing `app/main.py` entrypoint. No extra root `app` project is needed. Origin settings should contain a scheme and hostname (with port only if needed), with no path. Copied trailing slashes and surrounding whitespace are now normalized by the application.
+
+If a separate frontend reports “Failed to fetch” while `/api/health` and `/api/dashboard` work directly, inspect the backend response's `Access-Control-Allow-Origin` for the actual frontend origin. A URL copied with a trailing slash previously caused an origin mismatch; the deployment fix normalizes CORS origins and the frontend API base URL, without adding wildcard access. Deployment Protection must also permit public access to the production API domain.
 
 The repository root contains a Vercel Services configuration in `vercel.json`. It declares two independently built services: `frontend` (Vite, rooted at `frontend/`) and `backend` (FastAPI, rooted at `backend/`, entrypoint `app.main:app`). Each service owns its build/runtime settings. `/api/*`, `/docs`, `/docs/*`, and `/openapi.json` route to the backend; remaining paths route to the frontend. Vercel preserves the original request path, matching FastAPI's existing `/api/...` routes.
 

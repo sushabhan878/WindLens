@@ -1,5 +1,7 @@
 # Local verification — 28 October 2026
 
+Production update: the separate frontend at `https://windlens-web.vercel.app` and backend at `https://windlens-api-beryl.vercel.app` are now deployed. The historical local-only status and services-migration notes below describe earlier verification stages.
+
 The application was initially delivered locally. A two-service Vercel deployment is now being prepared; service names and public routing await the user's requested confirmation. Cloud deployment, YouTube upload, and application-form submission have not been performed by the agent.
 
 ## Automated and runtime checks
@@ -65,3 +67,12 @@ Vercel configuration is prepared but has not been executed against a cloud accou
 - Through the Vercel local router, `/`, `/api/health`, `/api/summary`, `/docs`, `/docs/oauth2-redirect`, and `/openapi.json` returned HTTP 200. Summary reported 744 matched pairs and MAE 2,107.1761 MW from the bundled snapshot.
 - Backend tests: 38 passed after migration. Production frontend build passes.
 - These are local services checks, not a claim that a Vercel cloud deployment has succeeded. Changes have not been pushed or deployed pending the requested service-layout confirmation.
+
+## Production data-loading repair
+
+- Diagnosed the deployed bundle's API base as `https://windlens-api-beryl.vercel.app/`, which created `//api/...` redirects.
+- Direct production API calls returned HTTP 200 and real data. CORS allowed `https://windlens-web.vercel.app/`, but omitted `Access-Control-Allow-Origin` for the browser's actual origin `https://windlens-web.vercel.app`. This exact mismatch reproduced the reported “Failed to fetch”.
+- Commit `3915517` normalizes frontend API origins and backend CORS configuration, including whitespace/trailing slashes and canonical host/port formatting. Invalid CORS values fail closed; untrusted origins stay disallowed.
+- Regression verification: **47 backend tests pass**, including real CORSMiddleware GET and POST-preflight behavior for copied slash-terminated origins. Frontend production build passes.
+- Pushed the correction through the existing GitHub connection; both production projects updated automatically. Confirmed that the API now returns the correct CORS allow-origin header and the frontend serves the updated bundle.
+- Verified in a fresh browser session that Overview and Methodology load real data, 744 matched pairs and 18,104 publications are displayed, actual/forecast curve paths render, and no browser errors are logged. CSV export URL uses a single `/api/` separator.
